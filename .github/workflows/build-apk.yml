@@ -1,36 +1,24 @@
-name: Build Android APK
+name: Build APK
 
-# 手動実行(Actionsタブから) と push 時の両方でビルドできるようにする。
 on:
   workflow_dispatch:
-  push:
-    branches: [ main, master ]
-    paths:
-      - "**.py"
-      - "buildozer.spec"
-      - ".github/workflows/build-apk.yml"
 
 jobs:
-  build-android:
-    name: Build APK with Buildozer
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # ArtemSBulgakov/buildozer-action は buildozer公式Dockerイメージを使うため、
-      # Java/Android SDK/NDK等を手動セットアップする必要がなく、環境差異による
-      # ビルドエラーが起きにくい(2026年時点で最も広く使われている構成)。
-      - name: Build with Buildozer
-        id: buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        with:
-          command: buildozer android debug
-          buildozer_version: stable
+      - name: Build APK using Buildozer (official Docker image)
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/home/buildozer \
+            kivy/buildozer:latest \
+            buildozer android debug
 
-      - name: Upload APK artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: DrivingAnalyzer-debug-apk
-          path: ${{ steps.buildozer.outputs.filename }}
-          if-no-files-found: error
+          name: apk
+          path: bin/*.apk
