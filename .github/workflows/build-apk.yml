@@ -19,7 +19,7 @@ jobs:
             -v ${{ github.workspace }}:/home/buildozer \
             -w /home/buildozer \
             kivy/buildozer:latest \
-            -c "yes | /root/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses >/dev/null 2>&1; buildozer android debug"
+            -c 'SDKMANAGER=$(find /root/.buildozer/android/platform/android-sdk -name sdkmanager -type f | head -1); echo "sdkmanager: $SDKMANAGER"; yes | "$SDKMANAGER" --licenses; buildozer android debug'
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
