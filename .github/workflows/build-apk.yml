@@ -19,7 +19,13 @@ jobs:
             -v "${{ github.workspace }}:/home/buildozer" \
             -w /home/buildozer \
             kivy/buildozer:latest \
-            -c "buildozer android debug"
+            -c '
+              set -e
+
+              rm -rf /root/.buildozer
+
+              buildozer android debug
+            '
 
       - name: Find APK
         run: |
@@ -28,6 +34,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: DDA-APK
           path: bin/*.apk
           if-no-files-found: error
