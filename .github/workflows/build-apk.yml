@@ -16,13 +16,36 @@ jobs:
           docker run --rm \
             --entrypoint /bin/bash \
             -e BUILDOZER_WARN_ON_ROOT=0 \
-            -v ${{ github.workspace }}:/home/buildozer \
+            -v "${{ github.workspace }}:/home/buildozer" \
             -w /home/buildozer \
             kivy/buildozer:latest \
-            -c "yes | sdkmanager --licenses; sdkmanager 'build-tools;37.0.0'; buildozer android debug"
+            -c '
+              set -e
+
+              export ANDROIDSDK=/root/.buildozer/android/platform/android-sdk
+              export ANDROIDNDK=/root/.buildozer/android/platform/android-ndk-r25b
+
+              mkdir -p "$ANDROIDSDK"
+
+              yes | sdkmanager --licenses || true
+
+              sdkmanager \
+                "platform-tools" \
+                "platforms;android-33" \
+                "build-tools;35.0.0"
+
+              yes | sdkmanager --licenses || true
+
+              buildozer android debug
+            '
+
+      - name: Find APK
+        run: |
+          find bin -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
           path: bin/*.apk
+          if-no-files-found: error
